@@ -9,7 +9,7 @@ Use MockDeviceKit to test DAT SDK integrations without physical Meta glasses.
 
 MockDeviceKit simulates Meta glasses behavior for development and testing. It provides:
 - `MockDeviceKit` — Entry point for creating simulated devices
-- `MockRaybanMeta` — Simulated Ray-Ban Meta glasses
+- `MockGlasses` — Simulated glasses (Ray-Ban Meta, etc.)
 - `MockCameraKit` — Simulated camera with configurable video feed and photo capture
 
 ## Setup
@@ -28,7 +28,7 @@ import MWDATMockDevice
 let mockDeviceKit = MockDeviceKit.shared
 mockDeviceKit.enable()
 
-let mockDevice = mockDeviceKit.pairRaybanMeta()
+let mockDevice = try mockDeviceKit.pairGlasses(model: .rayBanMeta)
 ```
 
 ## Simulating device states
@@ -87,14 +87,14 @@ import MetaWearablesDAT
 
 @MainActor
 class MockDeviceKitTestCase: XCTestCase {
-    private var mockDevice: MockRaybanMeta?
+    private var mockDevice: MockGlasses?
     private var cameraKit: MockCameraKit?
 
     override func setUp() async throws {
         try await super.setUp()
         MockDeviceKit.shared.enable()
-        mockDevice = MockDeviceKit.shared.pairRaybanMeta()
-        cameraKit = mockDevice?.services.camera
+        mockDevice = try MockDeviceKit.shared.pairGlasses(model: .rayBanMeta)
+        cameraKit = mockDevice?.services.camera // mockDevice is MockGlasses? for tearDown nil-ability
     }
 
     override func tearDown() async throws {

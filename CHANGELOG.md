@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-06-25
+
+### Added
+
+- Meta Glasses support.
+- [API] **Unified error model.** Introduced the `DatError` protocol (conforming to `LocalizedError`); all SDK error types now conform to it and expose a consistent `description`. This brings the iOS error model in line with Android.
+- [API] `CaptureError` enum for photo capture, with timeout and failure cases.
+- [API] `RegistrationError.timeout` and `UnregistrationError.timeout` cases.
+- [API] `DeviceType.metaGlasses` value.
+- [API] `Display.clearDisplay()` to clear rendered display content (async throwing; Obj-C `clearDisplayWithCompletion:`).
+- [Feature] **MockDeviceKit multi-glasses support.** `MockDeviceKit.pairGlasses(model:)` is a single factory for all supported glasses models, replacing `pairRaybanMeta()`. It throws `MockDeviceKitError` (`.notEnabled`) instead of returning an optional.
+  - `GlassesModel` enum (`.rayBanMeta`, `.oakleyMetaHSTN`, `.oakleyMetaVanguard`, `.rayBanMetaOptics`, `.metaGlasses`).
+  - `MockDeviceKitError` typed error.
+  - Obj-C: `pairGlasses(modelRawValue:)` replaces `pairRaybanMeta`.
+- [Feature] WiFi transport.
+
+### Changed
+
+- [API] Camera and Display lifecycle methods are now synchronous: `Stream.start()` / `Stream.stop()` and `Display.start()` / `Display.stop()` are no longer `async`. The Obj-C completion-handler variants (`startWithCompletion:` / `stopWithCompletion:`) are removed accordingly.
+- [API] Capabilities (`Stream`, `Display`) no longer conform to a `Capability` protocol; they are managed directly through their `DeviceSession` via `addStream` / `addDisplay` (and the corresponding removal methods). `DeviceSession.addCapability(_:)` / `removeCapability(_:)` are removed.
+- [API] Renamed `MockDisplaylessGlasses` protocol to `MockGlasses` and `MockDisplaylessGlassesServices` to `MockGlassesServices`.
+
+### Removed
+
+- [API] `MockRaybanMeta` protocol (use `MockGlasses`).
+- [API] `pairRaybanMeta()` (use `pairGlasses(model: .rayBanMeta)`).
+
 ## [0.7.0] - 2026-05-14
 
 ### Added

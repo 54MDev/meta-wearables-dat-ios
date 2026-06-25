@@ -164,7 +164,7 @@ let frameToken = stream.videoFramePublisher.listen { frame in
 }
 
 // Start the stream capability
-Task { await stream.start() }
+stream.start()
 ```
 
 ## Next steps

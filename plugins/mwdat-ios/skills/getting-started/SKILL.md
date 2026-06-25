@@ -41,9 +41,6 @@ Add these required entries to your `Info.plist`:
   </dict>
 </array>
 
-<!-- Allow the Meta AI companion app to callback -->
-<!-- Add fb-viewapp to your app's Info.plist query-schemes allowlist. -->
-
 <!-- External accessory protocol -->
 <key>UISupportedExternalAccessoryProtocols</key>
 <array>
@@ -69,7 +66,7 @@ Add these required entries to your `Info.plist`:
 </dict>
 ```
 
-Replace `myexampleapp` with your app's URL scheme. Use `0` for `MetaAppID` during development with Developer Mode, and add `fb-viewapp` to your app's Info.plist query-schemes allowlist.
+Replace `myexampleapp` with your app's URL scheme. Use `0` for `MetaAppID` during development with Developer Mode. Also add `fb-viewapp` to the Info.plist URL query-schemes allowlist used by `UIApplication.canOpenURL` so the SDK can detect and open Meta AI.
 
 ## Step 3: Initialize the SDK
 
@@ -161,7 +158,7 @@ let frameToken = stream.videoFramePublisher.listen { frame in
 }
 
 // Start the stream capability
-Task { await stream.start() }
+stream.start()
 ```
 
 ## Next steps

@@ -17,7 +17,7 @@ import XCTest
 @MainActor
 final class ViewModelIntegrationTests: XCTestCase {
 
-  private var mockDevice: MockRaybanMeta?
+  private var mockDevice: MockGlasses?
   private var cameraKit: MockCameraKit?
   private var viewModel: StreamSessionViewModel?
 
@@ -28,7 +28,7 @@ final class ViewModelIntegrationTests: XCTestCase {
     MockDeviceKit.shared.enable()
 
     // Pair mock device and set up camera kit
-    let pairedMockDevice = MockDeviceKit.shared.pairRaybanMeta()
+    let pairedMockDevice = try MockDeviceKit.shared.pairGlasses(model: .rayBanMeta)
     mockDevice = pairedMockDevice
     cameraKit = pairedMockDevice.services.camera
 
@@ -93,7 +93,7 @@ final class ViewModelIntegrationTests: XCTestCase {
     XCTAssertTrue([.streaming, .waiting].contains(viewModel.streamingStatus))
 
     // Stop streaming
-    await viewModel.stopSession()
+    viewModel.stopSession()
 
     // Wait for session to stop
     await observeUntil(timeout: 5) { !viewModel.isStreaming }
@@ -162,7 +162,7 @@ final class ViewModelIntegrationTests: XCTestCase {
     XCTAssertFalse(viewModel.showPhotoPreview)
     XCTAssertNil(viewModel.capturedPhoto)
 
-    await viewModel.stopSession()
+    viewModel.stopSession()
     await observeUntil(timeout: 5) { !viewModel.isStreaming }
 
     XCTAssertFalse(viewModel.isStreaming)

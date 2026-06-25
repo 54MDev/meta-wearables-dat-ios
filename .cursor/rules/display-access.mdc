@@ -101,7 +101,7 @@ final class DisplayController {
         }
       }
 
-      await capability.start()
+      capability.start()
     } catch DeviceSessionError.datAppOnTheGlassesUpdateRequired {
       showDATGlassesAppUpdate()
     } catch {
@@ -111,7 +111,7 @@ final class DisplayController {
 
   func disconnect() async {
     display?.onPlaybackEvent = nil
-    await display?.stop()
+    display?.stop()
     deviceSession?.stop()
     sessionErrorTask?.cancel()
     sessionErrorTask = nil
@@ -208,7 +208,7 @@ try await display.send(
 - Enable `MWDAT.DAMEnabled` for Display sessions, and include the DisplayAccess sample's link-lease Info.plist keys when building a full Display app.
 - Wait for the `DeviceSession` to reach `.started` before calling `addDisplay()`.
 - Handle `DeviceSessionError.datAppOnTheGlassesUpdateRequired` separately and offer `Wearables.shared.openDATGlassesAppUpdate()`.
-- Call `await display.start()`, then wait for `DisplayState.started` through `statePublisher` before sending user-triggered content.
+- Call `display.start()`, then wait for `DisplayState.started` through `statePublisher` before sending user-triggered content.
 - Observe `session.errorStream()` so async session failures are surfaced.
 - Keep listener tokens alive; dropping a token stops that listener.
 - Use the getting-started setup for Info.plist URL schemes and route app-open URLs to `Wearables.shared.handleUrl(_:)`.
@@ -224,5 +224,5 @@ Use the Display Access sample app for a complete flow: registration, device sele
 
 ## Links
 
-- [iOS API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7)
+- [iOS API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8)
 - [Developer documentation](https://wearables.developer.meta.com/docs/develop/)

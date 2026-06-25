@@ -31,7 +31,7 @@ extension MockDeviceKitView {
     init(mockDeviceKit: MockDeviceKitInterface) {
       self.mockDeviceKit = mockDeviceKit
       self.isEnabled = mockDeviceKit.isEnabled
-      self.cardViewModels = mockDeviceKit.pairedDevices.map { MockDeviceCardView.ViewModel(device: $0) }
+      self.cardViewModels = mockDeviceKit.pairedDevices.compactMap { $0 as? MockGlasses }.map { MockDeviceCardView.ViewModel(device: $0) }
     }
 
     func enable() {
@@ -46,8 +46,14 @@ extension MockDeviceKitView {
     }
 
     // Add a new mock Ray-Ban Meta device
-    func pairRaybanMeta() {
-      let mockDevice = mockDeviceKit.pairRaybanMeta()
+    func pairGlasses() {
+      let mockDevice: MockGlasses
+      do {
+        mockDevice = try mockDeviceKit.pairGlasses(model: .rayBanMeta)
+      } catch {
+        print("Failed to pair mock glasses: \(error)")
+        return
+      }
       cardViewModels.append(MockDeviceCardView.ViewModel(device: mockDevice))
     }
 

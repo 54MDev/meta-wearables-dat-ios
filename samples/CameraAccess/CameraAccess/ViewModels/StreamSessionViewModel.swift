@@ -73,18 +73,14 @@ final class StreamSessionViewModel {
       }
       await startSession()
     } catch {
-      showError("Permission error: \(error.description)")
+      // Use `localizedDescription` for user-facing text — `description` is
+      // always English and intended for logs.
+      showError("Permission error: \(error.localizedDescription)")
     }
   }
 
-  func stopSession() async {
-    guard let activeStream = stream else { return }
-    stream = nil
-    clearListeners()
-    streamingStatus = .stopped
-    currentVideoFrame = nil
-    hasReceivedFirstFrame = false
-    await activeStream.stop()
+  func stopSession() {
+    stream?.stop()
   }
 
   /// Stops both the stream and the underlying device session. Call in test tearDown.
@@ -151,11 +147,18 @@ final class StreamSessionViewModel {
       frameRate: 24
     )
 
-    guard let newStream = try? deviceSession.addStream(config: config) else { return }
-    stream = newStream
-    streamingStatus = .waiting
-    setupListeners(for: newStream)
-    await newStream.start()
+    do {
+      guard let newStream = try deviceSession.addStream(config: config) else {
+        showError("Unable to create stream. Please try again.")
+        return
+      }
+      stream = newStream
+      streamingStatus = .waiting
+      setupListeners(for: newStream)
+      newStream.start()
+    } catch {
+      showError("Failed to start stream: \(error.localizedDescription)")
+    }
   }
 
   private func setupListeners(for stream: MWDATCamera.Stream) {
@@ -188,6 +191,10 @@ final class StreamSessionViewModel {
     case .stopped:
       currentVideoFrame = nil
       streamingStatus = .stopped
+      stream = nil
+      clearListeners()
+      hasReceivedFirstFrame = false
+      sessionManager.stopCurrentSession()
     case .waitingForDevice, .starting, .stopping, .paused:
       streamingStatus = .waiting
     case .streaming:
@@ -223,5 +230,4 @@ final class StreamSessionViewModel {
     errorMessage = message
     showError = true
   }
-
 }

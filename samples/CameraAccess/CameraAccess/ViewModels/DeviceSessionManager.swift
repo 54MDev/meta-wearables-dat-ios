@@ -36,12 +36,24 @@ final class DeviceSessionManager {
     deviceSession?.stop()
   }
 
+  func stopCurrentSession() {
+    stateObserverTask?.cancel()
+    stateObserverTask = nil
+    deviceSession?.stop()
+    deviceSession = nil
+    isReady = false
+  }
+
   /// Stops the device session and cancels monitoring. Call before releasing.
-  /// The stateObserverTask handles cleanup when .stopped arrives.
   func cleanup() {
     deviceMonitorTask?.cancel()
     deviceMonitorTask = nil
+    stateObserverTask?.cancel()
+    stateObserverTask = nil
     deviceSession?.stop()
+    deviceSession = nil
+    isReady = false
+    hasActiveDevice = false
   }
 
   /// Returns a ready DeviceSession, creating one if needed.
@@ -76,7 +88,7 @@ final class DeviceSessionManager {
     }
 
     // Create a new session
-    do {
+    do throws(DeviceSessionError) {
       let session = try wearables.createSession(deviceSelector: deviceSelector)
       deviceSession = session
 
@@ -168,9 +180,9 @@ final class DeviceSessionManager {
         if state == .started {
           isReady = true
         } else if state == .stopped {
+          // DeviceSession.stopped is terminal - clean up
           isReady = false
           deviceSession = nil
-          stateObserverTask = nil
           return
         }
       }

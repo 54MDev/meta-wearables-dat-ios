@@ -154,11 +154,11 @@ class StreamViewModel: ObservableObject {
             }
         }
 
-        await stream.start()
+        stream.start()
     }
 
     func stopStream() {
-        Task { await stream?.stop() }
+        stream?.stop()
         deviceSession?.stop()
         stream = nil
         deviceSession = nil
@@ -181,7 +181,7 @@ func setupMockDevice() async {
     let mockDeviceKit = MockDeviceKit.shared
     mockDeviceKit.enable()
 
-    let device = mockDeviceKit.pairRaybanMeta()
+    guard let device = try? mockDeviceKit.pairGlasses(model: .rayBanMeta) else { return }
     device.don()
 
     if let videoURL = Bundle.main.url(forResource: "test_video", withExtension: "mov") {

@@ -101,10 +101,10 @@ let frameToken = stream.videoFramePublisher.listen { frame in
 
 ```swift
 // Start the stream capability
-Task { await stream.start() }
+stream.start()
 
 // Stop streaming
-Task { await stream.stop() }
+stream.stop()
 
 // Stop the parent device session when you're done with all capabilities
 deviceSession.stop()
@@ -135,6 +135,6 @@ Request lower settings for higher visual quality per frame.
 
 ## Links
 
-- [Stream API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7/mwdatcamera_stream)
-- [StreamConfiguration API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7/mwdatcamera_streamconfiguration)
+- [Stream API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8/mwdatcamera_stream)
+- [StreamConfiguration API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8/mwdatcamera_streamconfiguration)
 - [Integration guide](https://wearables.developer.meta.com/docs/build-integration-ios)

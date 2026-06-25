@@ -1,7 +1,7 @@
 # Meta Wearables DAT SDK
 
 > Full API reference: https://wearables.developer.meta.com/llms.txt?full=true
-> DAT docs MCP: https://mcp.facebook.com/wearables_dat
+> DAT docs MCP: https://mcp.developer.meta.com/wearables
 > Developer docs: https://wearables.developer.meta.com/docs/develop/
 
 ## Code style
@@ -43,7 +43,7 @@ import MWDATDisplay // Display, FlexBox, Text, Button, Image, Icon, VideoPlayer
 
 For testing:
 ```swift
-import MWDATMockDevice  // MockDeviceKit, MockRaybanMeta, MockCameraKit
+import MWDATMockDevice  // MockDeviceKit, MockGlasses, MockCameraKit
 ```
 
 ## Key Types
@@ -106,13 +106,13 @@ xcodebuild -scheme CameraAccess -destination 'platform=iOS Simulator,name=iPhone
 
 ## Live docs search
 
-If your editor supports remote MCP servers, connect `https://mcp.facebook.com/wearables_dat` and use `search_dat_docs` for current DAT setup, session lifecycle, camera streaming, MockDeviceKit, permissions, and exact API symbols.
+If your editor supports remote MCP servers, connect `https://mcp.developer.meta.com/wearables` and use `search_dat_docs` for current DAT setup, session lifecycle, camera streaming, MockDeviceKit, permissions, and exact API symbols. This public docs server does not require authentication; do not configure tokens, OAuth, or custom authorization headers for it.
 
 Use `llms.txt` when your tool only supports static reference context.
 
 ## Links
 
-- [iOS API Reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7)
+- [iOS API Reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8)
 - [Developer Documentation](https://wearables.developer.meta.com/docs/develop/)
 - [GitHub Repository](https://github.com/facebook/meta-wearables-dat-ios)
 
@@ -154,9 +154,6 @@ Add these required entries to your `Info.plist`:
   </dict>
 </array>
 
-<!-- Allow the Meta AI companion app to callback -->
-<!-- Add fb-viewapp to your app's Info.plist query-schemes allowlist. -->
-
 <!-- External accessory protocol -->
 <key>UISupportedExternalAccessoryProtocols</key>
 <array>
@@ -182,7 +179,7 @@ Add these required entries to your `Info.plist`:
 </dict>
 ```
 
-Replace `myexampleapp` with your app's URL scheme. Use `0` for `MetaAppID` during development with Developer Mode, and add `fb-viewapp` to your app's Info.plist query-schemes allowlist.
+Replace `myexampleapp` with your app's URL scheme. Use `0` for `MetaAppID` during development with Developer Mode. Also add `fb-viewapp` to the Info.plist URL query-schemes allowlist used by `UIApplication.canOpenURL` so the SDK can detect and open Meta AI.
 
 ## Step 3: Initialize the SDK
 
@@ -274,7 +271,7 @@ let frameToken = stream.videoFramePublisher.listen { frame in
 }
 
 // Start the stream capability
-Task { await stream.start() }
+stream.start()
 ```
 
 ## Next steps
@@ -291,7 +288,7 @@ Use MockDeviceKit to test DAT SDK integrations without physical Meta glasses.
 
 MockDeviceKit simulates Meta glasses behavior for development and testing. It provides:
 - `MockDeviceKit` — Entry point for creating simulated devices
-- `MockRaybanMeta` — Simulated Ray-Ban Meta glasses
+- `MockGlasses` — Simulated glasses (Ray-Ban Meta, etc.)
 - `MockCameraKit` — Simulated camera with configurable video feed and photo capture
 
 ## Setup
@@ -310,21 +307,21 @@ import MWDATMockDevice
 let mockDeviceKit = MockDeviceKit.shared
 mockDeviceKit.enable()
 
-let mockDevice = mockDeviceKit.pairRaybanMeta()
+let mockDevice = try mockDeviceKit.pairGlasses(model: .rayBanMeta)
 ```
 
 ## Simulating device states
 
 ```swift
 // Simulate glasses lifecycle
-await mockDevice.powerOn()
-await mockDevice.unfold()
-await mockDevice.don()    // Simulate wearing the glasses
+mockDevice.powerOn()
+mockDevice.unfold()
+mockDevice.don()    // Simulate wearing the glasses
 
 // Later...
-await mockDevice.doff()   // Simulate removing
-await mockDevice.fold()
-await mockDevice.powerOff()
+mockDevice.doff()   // Simulate removing
+mockDevice.fold()
+mockDevice.powerOff()
 ```
 
 ## Configuring permissions
@@ -369,14 +366,14 @@ import MetaWearablesDAT
 
 @MainActor
 class MockDeviceKitTestCase: XCTestCase {
-    private var mockDevice: MockRaybanMeta?
+    private var mockDevice: MockGlasses?
     private var cameraKit: MockCameraKit?
 
     override func setUp() async throws {
         try await super.setUp()
         MockDeviceKit.shared.enable()
-        mockDevice = MockDeviceKit.shared.pairRaybanMeta()
-        cameraKit = mockDevice?.services.camera
+        mockDevice = try MockDeviceKit.shared.pairGlasses(model: .rayBanMeta)
+        cameraKit = mockDevice?.services.camera // mockDevice is MockGlasses? for tearDown nil-ability
     }
 
     override func tearDown() async throws {
@@ -508,10 +505,10 @@ let frameToken = stream.videoFramePublisher.listen { frame in
 
 ```swift
 // Start the stream capability
-Task { await stream.start() }
+stream.start()
 
 // Stop streaming
-Task { await stream.stop() }
+stream.stop()
 
 // Stop the parent device session when you're done with all capabilities
 deviceSession.stop()
@@ -542,8 +539,8 @@ Request lower settings for higher visual quality per frame.
 
 ## Links
 
-- [Stream API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7/mwdatcamera_stream)
-- [StreamConfiguration API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7/mwdatcamera_streamconfiguration)
+- [Stream API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8/mwdatcamera_stream)
+- [StreamConfiguration API reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8/mwdatcamera_streamconfiguration)
 - [Integration guide](https://wearables.developer.meta.com/docs/build-integration-ios)
 
 ## Session management
@@ -1016,11 +1013,11 @@ class StreamViewModel: ObservableObject {
             }
         }
 
-        await stream.start()
+        stream.start()
     }
 
     func stopStream() {
-        Task { await stream?.stop() }
+        stream?.stop()
         deviceSession?.stop()
         stream = nil
         deviceSession = nil
@@ -1043,7 +1040,7 @@ func setupMockDevice() async {
     let mockDeviceKit = MockDeviceKit.shared
     mockDeviceKit.enable()
 
-    let device = mockDeviceKit.pairRaybanMeta()
+    guard let device = try? mockDeviceKit.pairGlasses(model: .rayBanMeta) else { return }
     device.don()
 
     if let videoURL = Bundle.main.url(forResource: "test_video", withExtension: "mov") {
@@ -1125,11 +1122,11 @@ displayStateToken = display.statePublisher.listen { state in
     }
   }
 }
-await display.start()
+display.start()
 ```
 
 For device picker/settings UI, read `Wearables.shared.devicesStream()`, resolve each identifier with `deviceForIdentifier(_:)`, and display `nameOrId()`, `deviceType().rawValue`, `linkState`, and `compatibility()`. Keep link-state and compatibility listener tokens alive. If firmware compatibility reports `.deviceUpdateRequired`, offer `Wearables.shared.openFirmwareUpdate()`. If session start throws or streams `DeviceSessionError.datAppOnTheGlassesUpdateRequired`, offer `Wearables.shared.openDATGlassesAppUpdate()`.
 
-Keep `displayStateToken` alive while you need state updates, and cancel the session error task when the flow ends. Wait for `DisplayState.started` through `statePublisher` after `await display.start()` before sending user-triggered content. If the user taps before Display is connected, queue the send and run it when `DisplayState.started` arrives, as DisplayAccess does. Reset the Display session when registration changes back to `.available` or `.unavailable`.
+Keep `displayStateToken` alive while you need state updates, and cancel the session error task when the flow ends. Wait for `DisplayState.started` through `statePublisher` after `display.start()` before sending user-triggered content. If the user taps before Display is connected, queue the send and run it when `DisplayState.started` arrives, as DisplayAccess does. Reset the Display session when registration changes back to `.available` or `.unavailable`.
 
 Build exactly one root `DisplayableView` per send: use a root `FlexBox` for UI or a root `VideoPlayer` for video. Do not send `Text`, `Button`, `Image`, or `Icon` as roots. Use `FlexBox.onTap` and `Button(label:onClick:)` for interactions; each send replaces the active content and tap handlers. If SwiftUI is imported, qualify Display DSL names such as `MWDATDisplay.Text`, `MWDATDisplay.Button`, and `MWDATDisplay.Image`. Use `IconName` enum values such as `.gear`, not raw strings. For URL video, set `display.onPlaybackEvent` before sending `VideoPlayer(provider: .uri(...), codec: .mp4, onError: { ... })`, clear it after terminal events, call `sendVideoStop()` for early exits, and treat blank or non-HTTP(S) URLs as `DisplayError.invalidVideoURL`.

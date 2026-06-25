@@ -35,9 +35,6 @@ struct StreamSessionView: View {
         NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel)
       }
     }
-    .onDisappear {
-      viewModel.endSession()
-    }
     .alert("Error", isPresented: $viewModel.showError) {
       Button("OK") {
         viewModel.dismissError()

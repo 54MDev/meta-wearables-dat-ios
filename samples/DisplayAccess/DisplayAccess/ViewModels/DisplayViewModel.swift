@@ -62,14 +62,14 @@ class DisplayViewModel {
       for await state in wearables.registrationStateStream() {
         guard let self, !Task.isCancelled else { return }
         if state == .available || state == .unavailable {
-          await self.resetDisplaySession()
+          self.resetDisplaySession()
         }
       }
     }
   }
 
-  private func resetDisplaySession() async {
-    await detachFromDisplay()
+  private func resetDisplaySession() {
+    detachFromDisplay()
     deviceSelector = AutoDeviceSelector(wearables: wearables, filter: { $0.supportsDisplay() })
   }
 
@@ -196,13 +196,15 @@ class DisplayViewModel {
             self.display = nil
             self.coreStateTask?.cancel()
             self.coreStateTask = nil
+            self.sessionErrorTask?.cancel()
+            self.sessionErrorTask = nil
             self.deviceSession?.stop()
             self.deviceSession = nil
           }
         }
       }
 
-      await capability.start()
+      capability.start()
       display = capability
     } catch {
       errorMessage = "Failed to start display: \(error.localizedDescription)"
@@ -293,21 +295,17 @@ class DisplayViewModel {
     )
   }
 
-  func detachFromDisplay() async {
-    stateListenerToken = nil
-    displayStateContinuation?.finish()
-    displayStateContinuation = nil
-    displayStateTask?.cancel()
-    displayStateTask = nil
-    await display?.stop()
-    display = nil
-    coreStateTask?.cancel()
-    coreStateTask = nil
-    sessionErrorTask?.cancel()
-    sessionErrorTask = nil
-    deviceSession?.stop()
-    deviceSession = nil
-    isConnected = false
+  func detachFromDisplay() {
+    if let display {
+      display.stop()
+    } else {
+      coreStateTask?.cancel()
+      coreStateTask = nil
+      sessionErrorTask?.cancel()
+      sessionErrorTask = nil
+      deviceSession?.stop()
+      deviceSession = nil
+    }
   }
 
   private func handleSessionError(_ error: DeviceSessionError) {

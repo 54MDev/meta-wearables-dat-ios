@@ -42,7 +42,7 @@ import MWDATDisplay // Display, FlexBox, Text, Button, Image, Icon, VideoPlayer
 
 For testing:
 ```swift
-import MWDATMockDevice  // MockDeviceKit, MockRaybanMeta, MockCameraKit
+import MWDATMockDevice  // MockDeviceKit, MockGlasses, MockCameraKit
 ```
 
 ## Key Types
@@ -105,12 +105,12 @@ xcodebuild -scheme CameraAccess -destination 'platform=iOS Simulator,name=iPhone
 
 ## Live docs search
 
-If your editor supports remote MCP servers, connect `https://mcp.facebook.com/wearables_dat` and use `search_dat_docs` for current DAT setup, session lifecycle, camera streaming, MockDeviceKit, permissions, and exact API symbols.
+If your editor supports remote MCP servers, connect `https://mcp.developer.meta.com/wearables` and use `search_dat_docs` for current DAT setup, session lifecycle, camera streaming, MockDeviceKit, permissions, and exact API symbols. This public docs server does not require authentication; do not configure tokens, OAuth, or custom authorization headers for it.
 
 Use `llms.txt` when your tool only supports static reference context.
 
 ## Links
 
-- [iOS API Reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7)
+- [iOS API Reference](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8)
 - [Developer Documentation](https://wearables.developer.meta.com/docs/develop/)
 - [GitHub Repository](https://github.com/facebook/meta-wearables-dat-ios)

@@ -1,7 +1,7 @@
 # Meta Wearables Device Access Toolkit for iOS
 
-[![Swift Package](https://img.shields.io/badge/Swift_Package-0.7.0-brightgreen?logo=swift&logoColor=white)](https://github.com/facebook/meta-wearables-dat-ios/tags)
-[![Docs](https://img.shields.io/badge/API_Reference-0.7-blue?logo=meta)](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.7)
+[![Swift Package](https://img.shields.io/badge/Swift_Package-0.8.0-brightgreen?logo=swift&logoColor=white)](https://github.com/facebook/meta-wearables-dat-ios/tags)
+[![Docs](https://img.shields.io/badge/API_Reference-0.8-blue?logo=meta)](https://wearables.developer.meta.com/docs/reference/ios_swift/dat/0.8)
 
 The Meta Wearables Device Access Toolkit enables developers to utilize Meta's AI glasses to build hands-free wearable experiences into their mobile applications.
 By integrating this SDK, developers can reliably connect to Meta's AI glasses and leverage capabilities like video streaming and photo capture.
@@ -87,7 +87,7 @@ This repository ships one public DAT knowledge base in two first-class formats:
 | [GitHub Copilot](https://github.com/features/copilot) | `.github/copilot-instructions.md` | Auto-loaded by Copilot in VS Code |
 | [Cursor](https://cursor.sh/) | `.cursor/rules/*.mdc` | Auto-loaded with glob-based triggers |
 | AGENTS.md-compatible tools | `AGENTS.md` | Portable fallback for agents that read `AGENTS.md` |
-| MCP-compatible editors | `https://mcp.facebook.com/wearables_dat` | Connect as a remote HTTP MCP server |
+| MCP-compatible editors | `https://mcp.developer.meta.com/wearables` | Connect as a remote HTTP MCP server; no authentication required |
 
 Claude and Codex install from the plugin payload under `plugins/`. Copilot, Cursor, and `AGENTS.md` readers use the native file-based artifacts at repo root.
 
@@ -139,13 +139,14 @@ curl -sL https://raw.githubusercontent.com/facebook/meta-wearables-dat-ios/main/
 
 - **Getting started** — SDK setup, SPM integration, Info.plist configuration
 - **Camera streaming** — Stream, video frames, resolution/frame rate, photo capture
+- **Display** — Use Display features on the Meta Ray-Ban Display glasses
 - **MockDevice testing** — Test without physical glasses using MockDeviceKit
 - **Session lifecycle** — Device session states, pause/resume, availability
 - **Permissions & registration** — App registration, camera permission flows
 - **Debugging** — Common issues, Developer Mode, version compatibility
 - **Sample app guide** — Building a complete DAT app
 
-For static reference context, point your AI tool at the [llms.txt endpoint](https://wearables.developer.meta.com/llms.txt?full=true). For live documentation search in MCP-compatible editors, connect `https://mcp.facebook.com/wearables_dat` and use `search_dat_docs`.
+For static reference context, point your AI tool at the [llms.txt endpoint](https://wearables.developer.meta.com/llms.txt?full=true). For live documentation search in MCP-compatible editors, connect `https://mcp.developer.meta.com/wearables` and use `search_dat_docs`. The public docs MCP server does not require authentication; do not configure tokens, OAuth, or custom authorization headers for it.
 
 ## License
 
