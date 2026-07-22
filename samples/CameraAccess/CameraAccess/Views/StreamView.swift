@@ -43,6 +43,23 @@ struct StreamView: View {
           .foregroundStyle(.white)
       }
 
+      // Stream stats readout (Phase 0 feasibility: fps + resolution)
+      if !viewModel.streamStats.isEmpty {
+        VStack {
+          HStack {
+            Text(viewModel.streamStats)
+              .font(.caption.monospaced())
+              .foregroundStyle(.white)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 4)
+              .background(.black.opacity(0.5), in: Capsule())
+            Spacer()
+          }
+          Spacer()
+        }
+        .padding(.all, 12)
+      }
+
       // Bottom controls layer
 
       VStack {

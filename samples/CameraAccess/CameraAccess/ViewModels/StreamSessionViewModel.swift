@@ -9,6 +9,7 @@
 import MWDATCamera
 import MWDATCore
 import Observation
+import QuartzCore
 import SwiftUI
 
 enum StreamingStatus {
@@ -26,6 +27,8 @@ final class StreamSessionViewModel {
   var currentVideoFrame: UIImage?
   var hasReceivedFirstFrame: Bool = false
   var streamingStatus: StreamingStatus = .stopped
+  /// "1920x1080 @ 24.3 fps" — Phase 0 feasibility readout, smoothed over recent frames.
+  var streamStats: String = ""
   var showError: Bool = false
   var errorMessage: String = ""
   var requiresDATAppUpdate: Bool = false
@@ -45,6 +48,9 @@ final class StreamSessionViewModel {
   private let sessionManager: DeviceSessionManager
   private let wearables: WearablesInterface
   private var stream: MWDATCamera.Stream?
+
+  private var lastFrameTimestamp: CFTimeInterval?
+  private var smoothedFPS: Double?
 
   private var stateListenerToken: AnyListenerToken?
   private var videoFrameListenerToken: AnyListenerToken?
@@ -90,6 +96,9 @@ final class StreamSessionViewModel {
     streamingStatus = .stopped
     currentVideoFrame = nil
     hasReceivedFirstFrame = false
+    streamStats = ""
+    lastFrameTimestamp = nil
+    smoothedFPS = nil
     sessionManager.cleanup()
   }
 
@@ -194,6 +203,9 @@ final class StreamSessionViewModel {
       stream = nil
       clearListeners()
       hasReceivedFirstFrame = false
+      streamStats = ""
+      lastFrameTimestamp = nil
+      smoothedFPS = nil
       sessionManager.stopCurrentSession()
     case .waitingForDevice, .starting, .stopping, .paused:
       streamingStatus = .waiting
@@ -208,7 +220,22 @@ final class StreamSessionViewModel {
       if !hasReceivedFirstFrame {
         hasReceivedFirstFrame = true
       }
+      updateStreamStats(for: image)
     }
+  }
+
+  private func updateStreamStats(for image: UIImage) {
+    let now = CACurrentMediaTime()
+    if let last = lastFrameTimestamp, now > last {
+      let instantFPS = 1 / (now - last)
+      smoothedFPS = smoothedFPS.map { $0 * 0.9 + instantFPS * 0.1 } ?? instantFPS
+    }
+    lastFrameTimestamp = now
+
+    let pixelWidth = Int(image.size.width * image.scale)
+    let pixelHeight = Int(image.size.height * image.scale)
+    let fpsText = smoothedFPS.map { String(format: "%.1f", $0) } ?? "…"
+    streamStats = "\(pixelWidth)x\(pixelHeight) @ \(fpsText) fps"
   }
 
   private func handleError(_ error: StreamError) {
