@@ -1,0 +1,4 @@
+{
+  "permissions": {},
+  "projectContext": "Headscan is an AI audio memory aid for Ray-Ban Meta glasses: streams the camera feed via the Meta Wearables DAT SDK, recognizes known faces on-device, and speaks who/where through the glasses' speakers. See docs/PLAN.md and docs/ROADMAP.md for architecture and phase gates, docs/FINDINGS.md for Phase 0 hardware findings. Built on the DAT SDK — see https://wearables.developer.meta.com/docs/develop/ and https://github.com/facebook/meta-wearables-dat-ios for SDK docs and skills."
+}
