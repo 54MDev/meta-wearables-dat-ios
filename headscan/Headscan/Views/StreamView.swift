@@ -11,21 +11,37 @@ struct StreamView: View {
       Color.black
         .edgesIgnoringSafeArea(.all)
 
-      // Video backdrop
+      // Video backdrop — full captured frame, letterboxed rather than cropped
       if let videoFrame = viewModel.currentVideoFrame, viewModel.hasReceivedFirstFrame {
-        GeometryReader { geometry in
-          Image(uiImage: videoFrame)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .clipped()
-        }
-        .edgesIgnoringSafeArea(.all)
+        Image(uiImage: videoFrame)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .edgesIgnoringSafeArea(.all)
       } else {
         ProgressView()
           .scaleEffect(1.5)
           .foregroundStyle(.white)
       }
+
+      // Debug overlay: quality + fps markers
+      VStack {
+        HStack {
+          VStack(alignment: .leading, spacing: 2) {
+            Text(viewModel.qualityLabel)
+            Text("glasses: \(viewModel.glassesFPS) fps")
+            Text("display: \(viewModel.displayFPS) fps")
+          }
+          .font(.caption.monospaced())
+          .foregroundStyle(.white)
+          .padding(8)
+          .background(.black.opacity(0.5))
+          .clipShape(RoundedRectangle(cornerRadius: 6))
+          .padding([.top, .leading], 12)
+          Spacer()
+        }
+        Spacer()
+      }
+      .edgesIgnoringSafeArea(.top)
 
       // Bottom controls layer
       VStack {

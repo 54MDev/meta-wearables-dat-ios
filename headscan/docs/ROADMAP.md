@@ -38,11 +38,36 @@ Each phase has a **Done when** gate — don't start the next phase until it hold
   the app.
 
 ### Phase 2 — Face detection + position logic
-- Vision face detection on each sampled frame; draw bounding boxes.
-- Position logic (left / ahead / right) as a pure function with unit tests —
-  this is the one piece of v1 logic that's trivially testable without hardware.
-- **Done when:** faces in the live feed get boxes labeled with position, and
-  the position function has passing tests.
+- `PositionLogic`: pure function first, no hardware/UI needed.
+  - New `Headscan/Logic/PositionLogic.swift`: `enum FacePosition { case left,
+    ahead, right }` + `func position(for boundingBox: CGRect) -> FacePosition`
+    using bbox center X (<0.4 left / >0.6 right / else ahead), per PLAN.md.
+  - New `HeadscanTests/PositionLogicTests.swift`: table-test the three
+    buckets plus the 0.4/0.6 boundary edge cases.
+- `FaceDetector` — Vision wrapper.
+  - New `Headscan/Logic/FaceDetector.swift`: takes a `CGImage`/`UIImage`, runs
+    `VNDetectFaceRectanglesRequest` via `VNImageRequestHandler`, returns
+    `[CGRect]` (normalized Vision coords — origin is bottom-left, y-flipped
+    from UIKit).
+  - Keep it synchronous/async-simple; measure speed before adding any
+    per-frame throttling.
+- Wire detection into `StreamSessionViewModel`.
+  - On each `handleVideoFrame`, after `frame.makeUIImage()`, run
+    `FaceDetector` on the frame.
+  - Add `var detectedFaces: [(rect: CGRect, position: FacePosition)]`
+    published state, computed via `PositionLogic.position(for:)` on each
+    detected rect.
+- Render boxes in `StreamView` — **this must be visible live in the running
+  app**, not just internal state, so the detection can be visually confirmed
+  working while wearing the glasses.
+  - Overlay a `ForEach` of `Rectangle().stroke()` + `Text(position)` on top of
+    the existing `Image`, converting Vision's normalized/flipped coords into
+    the image's displayed on-screen frame (accounting for the aspect-fit
+    letterboxing already in `StreamView`).
+- **Done when:** faces in the live feed get boxes labeled with position,
+  visible on-screen while streaming from real glasses, and
+  `PositionLogicTests` passes (the hard gate — the live boxes are eyeballed,
+  not unit-tested).
 
 ### Phase 3 — Enrollment + recognition
 - Pick and convert an embedding model to Core ML (MobileFaceNet or similar

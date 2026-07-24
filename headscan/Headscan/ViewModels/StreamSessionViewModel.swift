@@ -10,10 +10,13 @@ enum StreamingStatus {
   case stopped
 }
 
-/// Sampling interval for the displayed feed. The DAT stream itself runs at
-/// its native ~25-30 fps; only 1 frame/sec is kept for display and (from
-/// Phase 2 on) face detection, to spare battery/thermals.
-private let displaySampleInterval: CFTimeInterval = 1.0
+/// Stream request settings. 7fps keeps facial recognition workable while
+/// leaving BLE headroom for .high resolution instead of .low.
+private let streamResolution = StreamingResolution.high
+private let streamFrameRate: UInt = 7
+
+/// Window over which the two debug FPS counters are averaged.
+private let fpsWindowInterval: CFTimeInterval = 1.0
 
 /// ViewModel for video streaming UI. Delegates device management to DeviceSessionManager.
 @Observable
@@ -33,13 +36,26 @@ final class StreamSessionViewModel {
 
   var isStreaming: Bool { streamingStatus != .stopped }
 
+  /// e.g. "720x1280" — the resolution requested in `StreamConfiguration`.
+  var qualityLabel: String {
+    let size = streamResolution.videoFrameSize
+    return "\(size.width)x\(size.height)"
+  }
+
+  /// Frames/sec arriving from the glasses over BLE (pre-display-throttle).
+  var glassesFPS: Int = 0
+  /// Frames/sec actually rendered to the screen.
+  var displayFPS: Int = 0
+
   // MARK: - Private
 
   private let sessionManager: DeviceSessionManager
   private let wearables: WearablesInterface
   private var stream: MWDATCamera.Stream?
 
-  private var lastDisplayedFrameTimestamp: CFTimeInterval?
+  private var glassesFrameCount = 0
+  private var displayFrameCount = 0
+  private var fpsWindowStart: CFTimeInterval?
 
   private var stateListenerToken: AnyListenerToken?
   private var videoFrameListenerToken: AnyListenerToken?
@@ -84,7 +100,7 @@ final class StreamSessionViewModel {
     streamingStatus = .stopped
     currentVideoFrame = nil
     hasReceivedFirstFrame = false
-    lastDisplayedFrameTimestamp = nil
+    resetFPSCounters()
     sessionManager.cleanup()
   }
 
@@ -116,8 +132,8 @@ final class StreamSessionViewModel {
 
     let config = StreamConfiguration(
       videoCodec: VideoCodec.raw,
-      resolution: StreamingResolution.low,
-      frameRate: 24
+      resolution: streamResolution,
+      frameRate: streamFrameRate
     )
 
     do {
@@ -162,7 +178,7 @@ final class StreamSessionViewModel {
       stream = nil
       clearListeners()
       hasReceivedFirstFrame = false
-      lastDisplayedFrameTimestamp = nil
+      resetFPSCounters()
       sessionManager.stopCurrentSession()
     case .waitingForDevice, .starting, .stopping, .paused:
       streamingStatus = .waiting
@@ -173,13 +189,38 @@ final class StreamSessionViewModel {
 
   private func handleVideoFrame(_ frame: VideoFrame) {
     let now = CACurrentMediaTime()
-    if let last = lastDisplayedFrameTimestamp, now - last < displaySampleInterval {
+    glassesFrameCount += 1
+
+    guard let image = frame.makeUIImage() else {
+      updateFPSCounters(now: now)
       return
     }
-    guard let image = frame.makeUIImage() else { return }
-    lastDisplayedFrameTimestamp = now
+    displayFrameCount += 1
     currentVideoFrame = image
     hasReceivedFirstFrame = true
+    updateFPSCounters(now: now)
+  }
+
+  private func updateFPSCounters(now: CFTimeInterval) {
+    guard let windowStart = fpsWindowStart else {
+      fpsWindowStart = now
+      return
+    }
+    let elapsed = now - windowStart
+    guard elapsed >= fpsWindowInterval else { return }
+    glassesFPS = Int((Double(glassesFrameCount) / elapsed).rounded())
+    displayFPS = Int((Double(displayFrameCount) / elapsed).rounded())
+    glassesFrameCount = 0
+    displayFrameCount = 0
+    fpsWindowStart = now
+  }
+
+  private func resetFPSCounters() {
+    glassesFrameCount = 0
+    displayFrameCount = 0
+    fpsWindowStart = nil
+    glassesFPS = 0
+    displayFPS = 0
   }
 
   private func handleError(_ error: StreamError) {
